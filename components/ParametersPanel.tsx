@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Tranche, ModelParams } from '@/lib/model';
+import { Tranche, ModelParams, fmt$ } from '@/lib/model';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Props {
@@ -49,7 +49,9 @@ export default function ParametersPanel({ tranches, params, onTranchesChange, on
   const updateTranche = (id: string, field: keyof Tranche, raw: string) => {
     onTranchesChange(tranches.map(t => {
       if (t.id !== id) return t;
-      if (field === 'amount' || field === 'actualMonthly') return { ...t, [field]: parseFloat(raw) || 0 };
+      if (field === 'amount' || field === 'actualMonthly' || field === 'ltdGross') {
+        return { ...t, [field]: parseFloat(raw) || 0 };
+      }
       return { ...t, [field]: raw };
     }));
   };
@@ -115,10 +117,15 @@ export default function ParametersPanel({ tranches, params, onTranchesChange, on
                     <Field label="Amount Invested">
                       <NumberInput value={t.amount} onChange={v => updateTranche(t.id, 'amount', v)} prefix="$" step="5000" />
                     </Field>
-                    <Field label="Last Actual Monthly" hint="Leave blank if unknown">
-                      <NumberInput value={t.actualMonthly ?? ''} onChange={v => updateTranche(t.id, 'actualMonthly', v)} prefix="$" step="100" />
+                    <Field label="Total Received (LTD)" hint="Gross lifetime distributions so far">
+                      <NumberInput value={t.ltdGross ?? ''} onChange={v => updateTranche(t.id, 'ltdGross', v)} prefix="$" step="100" />
                     </Field>
-                    <Field label="Month of that payment">
+                    <Field label="YTD Distributions" hint="Used to compute avg monthly for calibration">
+                      <NumberInput value={t.actualMonthly ? +(t.actualMonthly * 3).toFixed(2) : ''} onChange={v => updateTranche(t.id, 'actualMonthly', String((parseFloat(v) || 0) / 3))} prefix="$" step="100" />
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mt-3">
+                    <Field label="Calibration month">
                       <input
                         type="month"
                         value={t.actualMonth ?? ''}
@@ -126,6 +133,12 @@ export default function ParametersPanel({ tranches, params, onTranchesChange, on
                         className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-blue-500 transition-colors"
                       />
                     </Field>
+                    {t.actualMonthly && t.actualMonth && (
+                      <div className="flex flex-col justify-end pb-0.5">
+                        <p className="text-xs text-slate-500">Calibrated avg</p>
+                        <p className="text-sm text-white font-medium">{fmt$(t.actualMonthly, 0)}/mo</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

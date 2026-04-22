@@ -16,8 +16,9 @@ export interface Tranche {
   label: string;
   color: string;
   isReinvestment: boolean;
-  actualMonthly?: number;
-  actualMonth?: string; // YYYY-MM
+  actualMonthly?: number; // calibration point — ideally the YTD monthly average
+  actualMonth?: string;   // YYYY-MM of the calibration reading
+  ltdGross?: number;      // lifetime gross distributions received to date
 }
 
 export interface Milestones {

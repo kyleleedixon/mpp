@@ -16,8 +16,9 @@ const DEFAULT_TRANCHES: Tranche[] = [
     label: '2024 Wells',
     color: '#3b82f6',
     isReinvestment: false,
-    actualMonthly: 3325.42,
+    actualMonthly: 14836.48 / 3, // YTD 2026 average (Jan–Mar)
     actualMonth: '2026-03',
+    ltdGross: 33723.14,
   },
   {
     id: 't2025',
@@ -26,8 +27,9 @@ const DEFAULT_TRANCHES: Tranche[] = [
     label: '2025 Wells',
     color: '#10b981',
     isReinvestment: false,
-    actualMonthly: 1578.56,
+    actualMonthly: 4208.69 / 3, // YTD 2026 average (Jan–Mar)
     actualMonth: '2026-03',
+    ltdGross: 4208.69,
   },
   {
     id: 't2026',
@@ -93,9 +95,12 @@ export default function Home() {
   const now = new Date();
   const totalInvested = manualTranches.reduce((s, t) => s + t.amount, 0);
 
-  // Use actual confirmed distributions where available; ignore planned-but-not-yet-invested tranches
+  // Current monthly income from tranches with calibration data (YTD avg where provided)
   const confirmedGross = manualTranches.reduce((s, t) => s + (t.actualMonthly ?? 0), 0);
   const confirmedNet = confirmedGross * (1 - params.incomeTaxRate);
+
+  // Total ever received across all tranches
+  const totalLTD = manualTranches.reduce((s, t) => s + (t.ltdGross ?? 0), 0);
   const lastAnnual = annual[annual.length - 1];
   const totalNetEver = lastAnnual?.cumulativeNet ?? 0;
   const breakEvenRow = annual.find(r => r.cashROI >= 0);
@@ -130,21 +135,21 @@ export default function Home() {
             sub="across all years"
           />
           <StatCard
-            label="Confirmed Monthly Income"
+            label="Avg Monthly Income"
             value={fmt$(confirmedGross, 0)}
-            sub={`${fmt$(confirmedNet, 0)} after tax`}
+            sub={`${fmt$(confirmedNet, 0)}/mo after tax · YTD avg`}
             highlight
           />
           <StatCard
-            label="Projected Total Income"
-            value={fmt$(totalNetEver, 0)}
-            sub="lifetime after-tax, incl. reinvestment"
+            label="Total Received to Date"
+            value={fmt$(totalLTD, 0)}
+            sub={`${fmt$(totalLTD * (1 - params.incomeTaxRate), 0)} after tax`}
           />
           <StatCard
             label="Break-even Year"
             value={breakEvenRow ? String(breakEvenRow.year) : '—'}
             sub={breakEvenRow
-              ? `${fmtPct(breakEvenRow.cashROI)} return on your $${(manualTranches.reduce((s,t)=>s+t.amount,0)/1000).toFixed(0)}k cash`
+              ? `when cumulative net income passes ${fmt$(totalInvested)}`
               : 'when your net income covers your out-of-pocket cash'}
           />
         </div>
