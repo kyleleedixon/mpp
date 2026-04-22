@@ -69,7 +69,7 @@ export default function AnnualTable({ rows }: Props) {
                   ({fmt$(row.taxWithheld)})
                 </td>
                 <td className="py-2 pr-3 text-right text-white font-medium">
-                  {fmt$(row.grossDistributions / 12, 0)}
+                  {fmt$(row.netDistributions / 12, 0)}
                 </td>
                 <td className="py-2 pr-3 text-right text-green-400 hidden sm:table-cell">
                   {fmt$(row.netDistributions)}
