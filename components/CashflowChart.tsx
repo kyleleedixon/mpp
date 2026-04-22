@@ -40,6 +40,13 @@ export default function CashflowChart({ monthly, tranches, showNet, taxRate }: P
     });
   }, [monthly, tranches, multiplier]);
 
+  const yearTicks = useMemo(() => {
+    const seen = new Set<number>();
+    return monthly
+      .filter(pt => { if (seen.has(pt.year)) return false; seen.add(pt.year); return true; })
+      .map(pt => `${pt.year}-01`);
+  }, [monthly]);
+
   return (
     <div className="w-full h-72 sm:h-80">
       <ResponsiveContainer width="100%" height="100%">
@@ -55,15 +62,11 @@ export default function CashflowChart({ monthly, tranches, showNet, taxRate }: P
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.4} />
           <XAxis
             dataKey="date"
-            tickFormatter={(val: string) => {
-              if (val.endsWith('-01')) return val.slice(0, 4);
-              if (val.endsWith('-07')) return `'${val.slice(2, 4)}`;
-              return '';
-            }}
+            ticks={yearTicks}
+            tickFormatter={(val: string) => val.slice(0, 4)}
             tick={{ fill: '#94a3b8', fontSize: 11 }}
             axisLine={{ stroke: '#334155' }}
             tickLine={false}
-            interval={5}
           />
           <YAxis
             tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
