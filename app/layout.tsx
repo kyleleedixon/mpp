@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Oil & Gas Investment Dashboard",
+  title: "MPP — Oil & Gas Investment Dashboard",
   description: "Cashflow projections and reinvestment modeling for oil & gas profit-sharing programs",
 };
 
