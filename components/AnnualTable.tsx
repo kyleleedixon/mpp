@@ -12,18 +12,18 @@ export default function AnnualTable({ rows }: Props) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full min-w-[780px] text-sm">
         <thead>
           <tr className="text-left text-slate-400 border-b border-slate-700">
-            <th className="pb-2 pr-3 font-medium">Year</th>
-            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">New Investment</th>
-            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Gross Income</th>
-            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Est. Tax</th>
-            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Gross / Mo</th>
-            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Net Income</th>
-            <th className="pb-2 pr-3 font-medium text-right">Net / Mo</th>
-            <th className="pb-2 pr-3 font-medium text-right">Cum. Net</th>
-            <th className="pb-2 font-medium text-right">Return</th>
+            <th className="pb-2 pr-3 font-medium whitespace-nowrap">Year</th>
+            <th className="pb-2 pr-3 font-medium text-right whitespace-nowrap">New Investment</th>
+            <th className="pb-2 pr-3 font-medium text-right whitespace-nowrap">Gross Income</th>
+            <th className="pb-2 pr-3 font-medium text-right whitespace-nowrap">Est. Tax</th>
+            <th className="pb-2 pr-3 font-medium text-right whitespace-nowrap">Gross / Mo</th>
+            <th className="pb-2 pr-3 font-medium text-right whitespace-nowrap">Net Income</th>
+            <th className="pb-2 pr-3 font-medium text-right whitespace-nowrap">Net / Mo</th>
+            <th className="pb-2 pr-3 font-medium text-right whitespace-nowrap">Cum. Net</th>
+            <th className="pb-2 font-medium text-right whitespace-nowrap">Return</th>
           </tr>
         </thead>
         <tbody>
@@ -42,21 +42,19 @@ export default function AnnualTable({ rows }: Props) {
                   isBreakEven ? 'bg-green-950/30' : '',
                 ].join(' ')}
               >
-                <td className="py-2 pr-4">
+                <td className="py-2 pr-3 whitespace-nowrap">
                   <span className="font-medium text-white">{row.year}</span>
                   {isCurrent && (
-                    <span className="ml-2 text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">now</span>
+                    <span className="ml-1.5 text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">now</span>
                   )}
                   {row.isReinvestmentYear && (
-                    <span className="ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded hidden sm:inline">reinvest</span>
+                    <span className="ml-1.5 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">reinvest</span>
                   )}
                   {isBreakEven && (
-                    <span className="ml-1 text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
-                      <span className="hidden sm:inline">break-even </span>✓
-                    </span>
+                    <span className="ml-1.5 text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-medium">✓</span>
                   )}
                 </td>
-                <td className="py-2 pr-3 text-right hidden sm:table-cell">
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
                   {row.newInvestment > 0 ? (
                     <span className={row.isReinvestmentYear ? 'text-emerald-400' : 'text-amber-400'}>
                       {fmt$(row.newInvestment)}
@@ -65,25 +63,25 @@ export default function AnnualTable({ rows }: Props) {
                     <span className="text-slate-600">—</span>
                   )}
                 </td>
-                <td className="py-2 pr-3 text-right text-slate-200 hidden sm:table-cell">
+                <td className="py-2 pr-3 text-right text-slate-200 whitespace-nowrap">
                   {fmt$(row.grossDistributions)}
                 </td>
-                <td className="py-2 pr-3 text-right text-red-400/80 hidden sm:table-cell">
+                <td className="py-2 pr-3 text-right text-red-400/80 whitespace-nowrap">
                   ({fmt$(row.taxWithheld)})
                 </td>
-                <td className="py-2 pr-3 text-right text-slate-200 hidden sm:table-cell">
+                <td className="py-2 pr-3 text-right text-slate-200 whitespace-nowrap">
                   {fmt$(row.grossDistributions / 12, 0)}
                 </td>
-                <td className="py-2 pr-3 text-right text-green-400 hidden sm:table-cell">
+                <td className="py-2 pr-3 text-right text-green-400 whitespace-nowrap">
                   {fmt$(row.netDistributions)}
                 </td>
-                <td className="py-2 pr-3 text-right text-white font-medium">
+                <td className="py-2 pr-3 text-right text-white font-medium whitespace-nowrap">
                   {fmt$(row.netDistributions / 12, 0)}
                 </td>
-                <td className="py-2 pr-3 text-right text-slate-300">
+                <td className="py-2 pr-3 text-right text-slate-300 whitespace-nowrap">
                   {fmt$(row.cumulativeNet)}
                 </td>
-                <td className="py-2 text-right">
+                <td className="py-2 text-right whitespace-nowrap">
                   <span className={[
                     'font-medium',
                     row.cashROI >= 1 ? 'text-emerald-400' :
@@ -98,8 +96,7 @@ export default function AnnualTable({ rows }: Props) {
         </tbody>
       </table>
       <p className="text-xs text-slate-600 mt-3">
-        &ldquo;Return on Cash&rdquo; = cumulative net income vs. your out-of-pocket cash only (excludes reinvested distributions).
-        Break-even is when you&apos;ve received back everything you personally invested.
+        Return = cumulative net income vs. your out-of-pocket cash. ✓ = break-even reached.
       </p>
     </div>
   );
