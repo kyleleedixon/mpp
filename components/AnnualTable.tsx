@@ -15,13 +15,13 @@ export default function AnnualTable({ rows }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-slate-400 border-b border-slate-700">
-            <th className="pb-2 pr-4 font-medium">Year</th>
-            <th className="pb-2 pr-4 font-medium text-right">New Investment</th>
-            <th className="pb-2 pr-4 font-medium text-right">Gross Income</th>
-            <th className="pb-2 pr-4 font-medium text-right">Est. Tax</th>
-            <th className="pb-2 pr-4 font-medium text-right">Net Income</th>
-            <th className="pb-2 pr-4 font-medium text-right">Cum. Net Income</th>
-            <th className="pb-2 font-medium text-right">Return on Cash</th>
+            <th className="pb-2 pr-3 font-medium">Year</th>
+            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">New Investment</th>
+            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Gross Income</th>
+            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Est. Tax</th>
+            <th className="pb-2 pr-3 font-medium text-right">Net Income</th>
+            <th className="pb-2 pr-3 font-medium text-right">Cum. Net</th>
+            <th className="pb-2 font-medium text-right">Return</th>
           </tr>
         </thead>
         <tbody>
@@ -52,7 +52,7 @@ export default function AnnualTable({ rows }: Props) {
                     <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-medium">break-even ✓</span>
                   )}
                 </td>
-                <td className="py-2 pr-4 text-right">
+                <td className="py-2 pr-3 text-right hidden sm:table-cell">
                   {row.newInvestment > 0 ? (
                     <span className={row.isReinvestmentYear ? 'text-emerald-400' : 'text-amber-400'}>
                       {fmt$(row.newInvestment)}
@@ -61,16 +61,16 @@ export default function AnnualTable({ rows }: Props) {
                     <span className="text-slate-600">—</span>
                   )}
                 </td>
-                <td className="py-2 pr-4 text-right text-slate-200">
+                <td className="py-2 pr-3 text-right text-slate-200 hidden sm:table-cell">
                   {fmt$(row.grossDistributions)}
                 </td>
-                <td className="py-2 pr-4 text-right text-red-400/80">
+                <td className="py-2 pr-3 text-right text-red-400/80 hidden sm:table-cell">
                   ({fmt$(row.taxWithheld)})
                 </td>
-                <td className="py-2 pr-4 text-right text-green-400">
+                <td className="py-2 pr-3 text-right text-green-400">
                   {fmt$(row.netDistributions)}
                 </td>
-                <td className="py-2 pr-4 text-right text-slate-300">
+                <td className="py-2 pr-3 text-right text-slate-300">
                   {fmt$(row.cumulativeNet)}
                 </td>
                 <td className="py-2 text-right">

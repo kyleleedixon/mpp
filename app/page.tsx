@@ -85,9 +85,11 @@ export default function Home() {
   );
 
   const now = new Date();
-  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const currentMonthData = monthly.find(m => m.date === currentMonthStr);
   const totalInvested = manualTranches.reduce((s, t) => s + t.amount, 0);
+
+  // Use actual confirmed distributions where available; ignore planned-but-not-yet-invested tranches
+  const confirmedGross = manualTranches.reduce((s, t) => s + (t.actualMonthly ?? 0), 0);
+  const confirmedNet = confirmedGross * (1 - params.incomeTaxRate);
   const lastAnnual = annual[annual.length - 1];
   const totalNetEver = lastAnnual?.cumulativeNet ?? 0;
   const breakEvenRow = annual.find(r => r.cashROI >= 0);
@@ -120,9 +122,9 @@ export default function Home() {
             sub="across all years"
           />
           <StatCard
-            label="Monthly Income (this month)"
-            value={fmt$(currentMonthData?.totalGross ?? 0, 0)}
-            sub={`${fmt$(currentMonthData?.totalNet ?? 0, 0)} after tax`}
+            label="Confirmed Monthly Income"
+            value={fmt$(confirmedGross, 0)}
+            sub={`${fmt$(confirmedNet, 0)} after tax`}
             highlight
           />
           <StatCard
@@ -211,10 +213,6 @@ export default function Home() {
           <AnnualTable rows={annual} />
         </div>
 
-        <p className="text-xs text-slate-600 text-center pb-4">
-          Projections are estimates based on the program&apos;s stated milestones, calibrated from your actual distributions.
-          Consult a tax professional — oil &amp; gas programs often qualify for depletion allowances that reduce your effective tax rate.
-        </p>
       </div>
     </div>
   );
