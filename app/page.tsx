@@ -54,7 +54,7 @@ const DEFAULT_PARAMS: ModelParams = {
   incomeTaxRate: 0.30,
   hysaAPY: 0.045,
   reinvestStartYear: 2028,
-  simulationEndYear: 2043,
+  simulationEndYear: 2038,
 };
 
 function StatCard({ label, value, sub, highlight = false }: {

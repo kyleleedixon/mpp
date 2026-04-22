@@ -46,15 +46,34 @@ function NumberInput({
 export default function ParametersPanel({ tranches, params, onTranchesChange, onParamsChange }: Props) {
   const [open, setOpen] = useState(false);
 
+  // Derive YTD month count from the calibration month (e.g. 2026-03 → 3 months)
+  const ytdMonths = (actualMonth: string | undefined) =>
+    actualMonth ? parseInt(actualMonth.split('-')[1]) || 1 : 1;
+
   const updateTranche = (id: string, field: keyof Tranche, raw: string) => {
     onTranchesChange(tranches.map(t => {
       if (t.id !== id) return t;
-      if (field === 'amount' || field === 'actualMonthly' || field === 'ltdGross') {
+      if (field === 'amount' || field === 'ltdGross') {
         return { ...t, [field]: parseFloat(raw) || 0 };
+      }
+      // YTD input: store as actualMonthly = ytd / months
+      if (field === 'actualMonthly') {
+        const ytd = parseFloat(raw) || 0;
+        return { ...t, actualMonthly: ytd / ytdMonths(t.actualMonth) };
+      }
+      // When calibration month changes, recompute actualMonthly from existing YTD
+      if (field === 'actualMonth') {
+        const months = ytdMonths(raw);
+        const ytd = (t.actualMonthly ?? 0) * ytdMonths(t.actualMonth);
+        return { ...t, actualMonth: raw, actualMonthly: ytd / months };
       }
       return { ...t, [field]: raw };
     }));
   };
+
+  // Display YTD as the gross total (actualMonthly × ytdMonths)
+  const ytdDisplay = (t: Tranche) =>
+    t.actualMonthly ? +(t.actualMonthly * ytdMonths(t.actualMonth)).toFixed(2) : '';
 
   const addTranche = () => {
     const maxYear = Math.max(...tranches.filter(t => !t.isReinvestment).map(t => t.year));
@@ -110,36 +129,34 @@ export default function ParametersPanel({ tranches, params, onTranchesChange, on
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-5">
                     <Field label="Year">
                       <NumberInput value={t.year} onChange={v => updateTranche(t.id, 'year', v)} step="1" min="2020" />
                     </Field>
                     <Field label="Amount Invested">
                       <NumberInput value={t.amount} onChange={v => updateTranche(t.id, 'amount', v)} prefix="$" step="5000" />
                     </Field>
-                    <Field label="Total Received (LTD)" hint="Gross lifetime distributions so far">
+                    <Field label="YTD Distributions">
+                      <NumberInput value={ytdDisplay(t)} onChange={v => updateTranche(t.id, 'actualMonthly', v)} prefix="$" step="100" />
+                    </Field>
+                    <Field label="Total Received (LTD)">
                       <NumberInput value={t.ltdGross ?? ''} onChange={v => updateTranche(t.id, 'ltdGross', v)} prefix="$" step="100" />
                     </Field>
-                    <Field label="YTD Distributions" hint="Used to compute avg monthly for calibration">
-                      <NumberInput value={t.actualMonthly ? +(t.actualMonthly * 3).toFixed(2) : ''} onChange={v => updateTranche(t.id, 'actualMonthly', String((parseFloat(v) || 0) / 3))} prefix="$" step="100" />
-                    </Field>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mt-3">
-                    <Field label="Calibration month">
+                    <Field label="As Of">
                       <input
                         type="month"
                         value={t.actualMonth ?? ''}
                         onChange={e => updateTranche(t.id, 'actualMonth', e.target.value)}
-                        className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-blue-500 transition-colors"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-blue-500 transition-colors"
                       />
                     </Field>
-                    {t.actualMonthly && t.actualMonth && (
-                      <div className="flex flex-col justify-end pb-0.5">
-                        <p className="text-xs text-slate-500">Calibrated avg</p>
-                        <p className="text-sm text-white font-medium">{fmt$(t.actualMonthly, 0)}/mo</p>
-                      </div>
-                    )}
                   </div>
+                  {t.actualMonthly && t.actualMonth && (
+                    <p className="text-xs text-slate-500 mt-2">
+                      Avg monthly (calibration): <span className="text-white font-medium">{fmt$(t.actualMonthly, 0)}/mo</span>
+                      {' '}over {ytdMonths(t.actualMonth)} months
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
