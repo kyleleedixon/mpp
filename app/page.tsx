@@ -119,7 +119,7 @@ export default function Home() {
     });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 text-white">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
 
         {/* Header */}
