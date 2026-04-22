@@ -74,7 +74,8 @@ export default function CashflowChart({ monthly, tranches, showNet, taxRate }: P
           />
           <Tooltip
             content={(props) => {
-              const { active, payload } = props;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const { active, payload, coordinate, viewBox } = props as any;
               if (!active || !payload?.length) return null;
               const date = payload[0]?.payload?.date as string;
               const isProjected = payload[0]?.payload?.isProjected as boolean;
@@ -82,29 +83,34 @@ export default function CashflowChart({ monthly, tranches, showNet, taxRate }: P
               const dateLabel = date
                 ? new Date(parseInt(y), parseInt(m) - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
                 : '';
-              const total = payload.reduce((s, p) => s + (Number(p.value) || 0), 0);
-              const visibleRows = payload.filter(p => Number(p.value) > 0.5);
+              const total = payload.reduce((s: number, p: {value: unknown}) => s + (Number(p.value) || 0), 0);
+              const visibleRows = payload.filter((p: {value: unknown}) => Number(p.value) > 0.5);
+              // Flip tooltip to the left when cursor is past the midpoint so it never goes off-screen
+              const flipLeft = coordinate?.x > (viewBox?.width ?? 0) / 2;
               return (
-                <div className="bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm shadow-xl min-w-44">
-                  <div className="flex items-center justify-between mb-2 gap-3">
-                    <p className="text-white font-semibold">{dateLabel}</p>
+                <div
+                  className="bg-slate-900 border border-slate-700 rounded-xl p-3 shadow-xl w-44"
+                  style={{ transform: flipLeft ? 'translateX(calc(-100% - 12px))' : 'translateX(12px)' }}
+                >
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <p className="text-white font-semibold text-xs">{dateLabel}</p>
                     {isProjected && (
-                      <span className="text-xs text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded flex-shrink-0">projected</span>
+                      <span className="text-xs text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded flex-shrink-0">est.</span>
                     )}
                   </div>
-                  {visibleRows.map(p => {
+                  {visibleRows.map((p: {dataKey: unknown; value: unknown}) => {
                     const t = tranches.find(tr => tr.id === String(p.dataKey));
                     if (!t) return null;
                     return (
                       <div key={String(p.dataKey)} className="flex items-center gap-2 mb-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: t.color }} />
-                        <span className="text-slate-400 flex-1 text-xs">{t.label}</span>
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: t.color }} />
+                        <span className="text-slate-400 flex-1 text-xs truncate">{t.label}</span>
                         <span className="text-white font-medium text-xs">{fmt$(Number(p.value), 0)}</span>
                       </div>
                     );
                   })}
                   <div className="border-t border-slate-700 mt-2 pt-2 flex justify-between">
-                    <span className="text-slate-400 text-xs">Total / month</span>
+                    <span className="text-slate-400 text-xs">Total / mo</span>
                     <span className="text-white font-bold text-xs">{fmt$(total, 0)}</span>
                   </div>
                 </div>
