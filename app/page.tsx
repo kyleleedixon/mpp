@@ -2,11 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Tranche, ModelParams, runModel, fmt$, fmtPct, getScaleFactor } from '@/lib/model';
+import { Tranche, ModelParams, runModel, fmt$, getScaleFactor } from '@/lib/model';
 import ParametersPanel from '@/components/ParametersPanel';
 import AnnualTable from '@/components/AnnualTable';
 
-// Recharts uses browser APIs — load without SSR
 const CashflowChart = dynamic(() => import('@/components/CashflowChart'), { ssr: false });
 
 const DEFAULT_TRANCHES: Tranche[] = [
@@ -93,60 +92,74 @@ export default function Home() {
   const totalNetEver = lastAnnual?.cumulativeNet ?? 0;
   const breakEvenRow = annual.find(r => r.roiNet >= 0);
 
-  const scaleInfo = manualTranches
+  // Plain-English performance notes for tranches with actual data
+  const performanceNotes = manualTranches
     .filter(t => t.actualMonthly && t.actualMonth)
-    .map(t => ({ t, sf: getScaleFactor(t, params.milestones) }));
+    .map(t => {
+      const sf = getScaleFactor(t, params.milestones);
+      const pct = Math.abs((sf - 1) * 100).toFixed(0);
+      const direction = sf >= 1 ? 'above' : 'below';
+      const color = sf >= 1 ? 'text-green-400' : 'text-amber-400';
+      return { t, sf, pct, direction, color };
+    });
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+
+        {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-white">Oil &amp; Gas Investment Dashboard</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Profit-sharing participation plan — cashflow projections &amp; reinvestment modeling
+            Profit-sharing participation plan — monthly income projections &amp; reinvestment modeling
           </p>
         </div>
 
+        {/* Key stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <StatCard
-            label="Total Cash Invested"
+            label="Total Invested"
             value={fmt$(totalInvested)}
-            sub="2024–2027 planned"
+            sub="across all years"
           />
           <StatCard
-            label="Current Monthly (gross)"
+            label="Monthly Income (this month)"
             value={fmt$(currentMonthData?.totalGross ?? 0, 0)}
-            sub={`${fmt$(currentMonthData?.totalNet ?? 0, 0)} after ~${(params.incomeTaxRate * 100).toFixed(0)}% tax`}
+            sub={`${fmt$(currentMonthData?.totalNet ?? 0, 0)} after tax`}
             highlight
           />
           <StatCard
-            label="Projected Lifetime Net"
+            label="Projected Total Income"
             value={fmt$(totalNetEver, 0)}
-            sub={`${fmtPct(lastAnnual?.roiNet ?? 0)} net ROI on invested capital`}
+            sub="lifetime after-tax, incl. reinvestment"
           />
           <StatCard
-            label="Net Break-even Year"
+            label="Break-even Year"
             value={breakEvenRow ? String(breakEvenRow.year) : '—'}
-            sub={breakEvenRow ? `${breakEvenRow.year - 2024} yrs from first investment` : 'Not yet in view'}
+            sub={breakEvenRow ? 'when cumulative income covers all invested cash' : ''}
           />
         </div>
 
-        {scaleInfo.length > 0 && (
-          <div className="flex flex-wrap gap-3">
-            {scaleInfo.map(({ t, sf }) => (
-              <div key={t.id} className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: t.color }} />
-                <span className="text-slate-300">{t.label}</span>
-                <span className="text-slate-500">calibrated at</span>
-                <span className={sf >= 1 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
-                  {sf.toFixed(2)}× model
-                </span>
-                <span className="text-slate-500">({fmt$(t.actualMonthly ?? 0, 0)}/mo actual vs {fmt$(t.amount * (params.milestones.year3 / 36) * 1, 0)} expected)</span>
+        {/* Performance callouts — plain English */}
+        {performanceNotes.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {performanceNotes.map(({ t, pct, direction, color }) => (
+              <div key={t.id} className="flex items-start gap-3 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3">
+                <div className="w-3 h-3 rounded-full mt-0.5 flex-shrink-0" style={{ background: t.color }} />
+                <div>
+                  <span className="text-white font-medium">{t.label}</span>
+                  <span className="text-slate-400"> is paying </span>
+                  <span className={`${color} font-medium`}>{fmt$(t.actualMonthly ?? 0, 0)}/mo</span>
+                  <span className="text-slate-400"> — </span>
+                  <span className={color}>{pct}% {direction}</span>
+                  <span className="text-slate-400"> the baseline projection. Future distributions are scaled accordingly.</span>
+                </div>
               </div>
             ))}
           </div>
         )}
 
+        {/* Parameters */}
         <ParametersPanel
           tranches={manualTranches}
           params={params}
@@ -154,44 +167,54 @@ export default function Home() {
           onParamsChange={setParams}
         />
 
+        {/* Chart */}
         <div className="bg-slate-900 border border-slate-700 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-base font-semibold text-white">Monthly Distributions by Tranche</h2>
+              <h2 className="text-base font-semibold text-white">Monthly Income Over Time</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Stacked gross distributions — dashed area = reinvested tranche
+                Each color is one year of wells. Hover to see exact amounts.
               </p>
             </div>
-            <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
               <button
                 onClick={() => setShowNet(false)}
-                className={['px-3 py-1 rounded text-xs font-medium transition-colors',
+                className={['px-3 py-1.5 rounded text-xs font-medium transition-colors',
                   !showNet ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white',
                 ].join(' ')}
               >
-                Gross
+                Before tax
               </button>
               <button
                 onClick={() => setShowNet(true)}
-                className={['px-3 py-1 rounded text-xs font-medium transition-colors',
+                className={['px-3 py-1.5 rounded text-xs font-medium transition-colors',
                   showNet ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white',
                 ].join(' ')}
               >
-                Net (after tax)
+                After tax
               </button>
             </div>
           </div>
-          <CashflowChart monthly={monthly} tranches={allTranches} showNet={showNet} />
+          <CashflowChart
+            monthly={monthly}
+            tranches={allTranches}
+            showNet={showNet}
+            taxRate={params.incomeTaxRate}
+          />
         </div>
 
+        {/* Annual table */}
         <div className="bg-slate-900 border border-slate-700 rounded-xl p-5">
-          <h2 className="text-base font-semibold text-white mb-4">Annual Summary</h2>
+          <h2 className="text-base font-semibold text-white mb-1">Year-by-Year Summary</h2>
+          <p className="text-xs text-slate-500 mb-4">
+            Green rows are reinvestment years — your accumulated savings fund that year&apos;s new wells.
+          </p>
           <AnnualTable rows={annual} />
         </div>
 
         <p className="text-xs text-slate-600 text-center pb-4">
-          Projections are illustrative based on program milestones and calibrated from actual distributions.
-          Tax estimates use a flat marginal rate — consult a tax professional regarding depletion allowances and passive income treatment.
+          Projections are estimates based on the program&apos;s stated milestones, calibrated from your actual distributions.
+          Consult a tax professional — oil &amp; gas programs often qualify for depletion allowances that reduce your effective tax rate.
         </p>
       </div>
     </div>

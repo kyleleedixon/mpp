@@ -18,64 +18,31 @@ interface Props {
   monthly: MonthlyPoint[];
   tranches: Tranche[];
   showNet: boolean;
+  taxRate: number;
 }
-
-const TICK_YEARS = new Set([2024, 2026, 2028, 2030, 2032, 2034, 2036, 2038, 2040]);
 
 const now = new Date();
-const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CustomTooltip({ active, payload, label, tranches, showNet }: any) {
-  if (!active || !payload?.length) return null;
-  const taxRate = payload[0]?.payload?.taxRate ?? 0;
-  const total = payload.reduce((s: number, p: { value: number }) => s + p.value, 0);
-  return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm shadow-xl">
-      <p className="text-slate-400 mb-2">{label}</p>
-      {payload.map((p: { name: string; value: number; color: string }) => {
-        const t = tranches.find((tr: Tranche) => tr.id === p.name);
-        return (
-          <div key={p.name} className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
-            <span className="text-slate-300">{t?.label ?? p.name}:</span>
-            <span className="text-white font-medium ml-auto pl-4">
-              {fmt$(showNet ? p.value * (1 - taxRate) : p.value, 0)}
-            </span>
-          </div>
-        );
-      })}
-      <div className="border-t border-slate-700 mt-2 pt-2 flex justify-between">
-        <span className="text-slate-400">Total {showNet ? 'net' : 'gross'}</span>
-        <span className="text-white font-bold">{fmt$(showNet ? total * (1 - taxRate) : total, 0)}</span>
-      </div>
-    </div>
-  );
-}
+export default function CashflowChart({ monthly, tranches, showNet, taxRate }: Props) {
+  const multiplier = showNet ? (1 - taxRate) : 1;
 
-export default function CashflowChart({ monthly, tranches, showNet }: Props) {
   const chartData = useMemo(() => {
-    // Aggregate monthly → quarterly for performance, keep labels as "Q1 2024" etc.
-    // Actually just use monthly but thin to every 3rd point after 2 years
     return monthly.map(pt => {
       const base: Record<string, number | string | boolean> = {
         date: pt.date,
-        label: (() => {
-          if (pt.month === 1) return String(pt.year);
-          if (pt.month === 7) return `'${String(pt.year).slice(2)}`;
-          return '';
-        })(),
+        label: pt.month === 1 ? String(pt.year) : pt.month === 7 ? `'${String(pt.year).slice(2)}` : '',
         isProjected: pt.isProjected,
-        taxRate: 0, // placeholder; we compute net in tooltip from gross
       };
       for (const t of tranches) {
-        base[t.id] = pt.byTranche[t.id] ?? 0;
+        base[t.id] = (pt.byTranche[t.id] ?? 0) * multiplier;
       }
       return base;
     });
-  }, [monthly, tranches]);
+  }, [monthly, tranches, multiplier]);
 
-  const yFormatter = (v: number) => `$${(v / 1000).toFixed(0)}k`;
+  const todayIndex = chartData.findIndex(d => d.date === todayDate);
+  const todayLabel = todayIndex >= 0 ? chartData[todayIndex].label : undefined;
 
   return (
     <div className="w-full h-80">
@@ -84,7 +51,7 @@ export default function CashflowChart({ monthly, tranches, showNet }: Props) {
           <defs>
             {tranches.map(t => (
               <linearGradient key={t.id} id={`g-${t.id}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={t.color} stopOpacity={0.35} />
+                <stop offset="5%" stopColor={t.color} stopOpacity={0.4} />
                 <stop offset="95%" stopColor={t.color} stopOpacity={0.05} />
               </linearGradient>
             ))}
@@ -98,14 +65,48 @@ export default function CashflowChart({ monthly, tranches, showNet }: Props) {
             interval={0}
           />
           <YAxis
-            tickFormatter={yFormatter}
+            tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
             tick={{ fill: '#94a3b8', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
             width={48}
           />
           <Tooltip
-            content={<CustomTooltip tranches={tranches} showNet={showNet} />}
+            content={(props) => {
+              const { active, payload } = props;
+              if (!active || !payload?.length) return null;
+              const date = payload[0]?.payload?.date as string;
+              const [y, m] = (date ?? '').split('-');
+              const dateLabel = date
+                ? new Date(parseInt(y), parseInt(m) - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : '';
+              const isProjected = payload[0]?.payload?.isProjected as boolean;
+              const total = payload.reduce((s, p) => s + (Number(p.value) || 0), 0);
+              const visibleRows = payload.filter(p => Number(p.value) > 0.5);
+              return (
+                <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm shadow-xl min-w-48">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-slate-300 font-medium">{dateLabel}</p>
+                    {isProjected && <span className="text-xs text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">projected</span>}
+                  </div>
+                  {visibleRows.map(p => {
+                    const t = tranches.find(tr => tr.id === String(p.dataKey));
+                    if (!t) return null;
+                    return (
+                      <div key={String(p.dataKey)} className="flex items-center gap-2 mb-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: t.color }} />
+                        <span className="text-slate-400 flex-1">{t.label}</span>
+                        <span className="text-white font-medium">{fmt$(Number(p.value), 0)}</span>
+                      </div>
+                    );
+                  })}
+                  <div className="border-t border-slate-700 mt-2 pt-2 flex justify-between">
+                    <span className="text-slate-400">Total / month</span>
+                    <span className="text-white font-bold">{fmt$(total, 0)}</span>
+                  </div>
+                </div>
+              );
+            }}
           />
           <Legend
             formatter={(value) => {
@@ -113,12 +114,14 @@ export default function CashflowChart({ monthly, tranches, showNet }: Props) {
               return <span style={{ color: '#94a3b8', fontSize: 12 }}>{t?.label ?? value}</span>;
             }}
           />
-          <ReferenceLine
-            x={todayStr === chartData.find(d => d.date === todayStr)?.date ? todayStr : undefined}
-            stroke="#f59e0b"
-            strokeDasharray="4 4"
-            label={{ value: 'Today', fill: '#f59e0b', fontSize: 11 }}
-          />
+          {todayIndex >= 0 && (
+            <ReferenceLine
+              x={todayLabel as string}
+              stroke="#f59e0b"
+              strokeDasharray="4 4"
+              label={{ value: 'Today', fill: '#f59e0b', fontSize: 11, position: 'insideTopRight' }}
+            />
+          )}
           {tranches.map(t => (
             <Area
               key={t.id}
@@ -129,6 +132,7 @@ export default function CashflowChart({ monthly, tranches, showNet }: Props) {
               strokeWidth={1.5}
               fill={`url(#g-${t.id})`}
               fillOpacity={1}
+              name={t.label}
             />
           ))}
         </AreaChart>
