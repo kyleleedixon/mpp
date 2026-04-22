@@ -19,7 +19,8 @@ export default function AnnualTable({ rows }: Props) {
             <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">New Investment</th>
             <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Gross Income</th>
             <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Est. Tax</th>
-            <th className="pb-2 pr-3 font-medium text-right">Net Income</th>
+            <th className="pb-2 pr-3 font-medium text-right">Avg / Month</th>
+            <th className="pb-2 pr-3 font-medium text-right hidden sm:table-cell">Net Income</th>
             <th className="pb-2 pr-3 font-medium text-right">Cum. Net</th>
             <th className="pb-2 font-medium text-right">Return</th>
           </tr>
@@ -67,7 +68,10 @@ export default function AnnualTable({ rows }: Props) {
                 <td className="py-2 pr-3 text-right text-red-400/80 hidden sm:table-cell">
                   ({fmt$(row.taxWithheld)})
                 </td>
-                <td className="py-2 pr-3 text-right text-green-400">
+                <td className="py-2 pr-3 text-right text-white font-medium">
+                  {fmt$(row.grossDistributions / 12, 0)}
+                </td>
+                <td className="py-2 pr-3 text-right text-green-400 hidden sm:table-cell">
                   {fmt$(row.netDistributions)}
                 </td>
                 <td className="py-2 pr-3 text-right text-slate-300">
