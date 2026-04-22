@@ -11,7 +11,7 @@ export default function AnnualTable({ rows }: Props) {
   const currentYear = now.getFullYear();
 
   return (
-    <div className="overflow-x-auto -mx-5 px-5">
+    <div className="overflow-x-auto">
       <table className="w-full min-w-[540px] text-sm">
         <thead>
           <tr className="text-left text-slate-400 border-b border-slate-700">
