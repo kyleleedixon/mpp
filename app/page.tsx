@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Tranche, ModelParams, runModel, fmt$, fmtPct, getScaleFactor } from '@/lib/model';
+import { Tranche, ModelParams, runModel, fmt$, fmtPct, getScaleFactor, distributionMonthN } from '@/lib/model';
 import ParametersPanel from '@/components/ParametersPanel';
 import AnnualTable from '@/components/AnnualTable';
 
@@ -52,7 +52,7 @@ const DEFAULT_PARAMS: ModelParams = {
   incomeTaxRate: 0.30,
   hysaAPY: 0.045,
   reinvestStartYear: 2028,
-  simulationEndYear: 2042,
+  simulationEndYear: 2043,
 };
 
 function StatCard({ label, value, sub, highlight = false }: {
@@ -108,7 +108,9 @@ export default function Home() {
       const pct = Math.abs((sf - 1) * 100).toFixed(0);
       const direction = sf >= 1 ? 'above' : 'below';
       const color = sf >= 1 ? 'text-green-400' : 'text-amber-400';
-      return { t, sf, pct, direction, color };
+      const [y, mo] = (t.actualMonth ?? '').split('-').map(Number);
+      const distMonth = distributionMonthN(y, mo, t.year);
+      return { t, sf, pct, direction, color, distMonth };
     });
 
   return (
@@ -150,16 +152,17 @@ export default function Home() {
         {/* Performance callouts — plain English */}
         {performanceNotes.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {performanceNotes.map(({ t, pct, direction, color }) => (
+            {performanceNotes.map(({ t, pct, direction, color, distMonth }) => (
               <div key={t.id} className="flex items-start gap-3 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3">
                 <div className="w-3 h-3 rounded-full mt-0.5 flex-shrink-0" style={{ background: t.color }} />
                 <div>
                   <span className="text-white font-medium">{t.label}</span>
-                  <span className="text-slate-400"> is paying </span>
+                  <span className="text-slate-400"> — month {distMonth} of distributions — is paying </span>
                   <span className={`${color} font-medium`}>{fmt$(t.actualMonthly ?? 0, 0)}/mo</span>
-                  <span className="text-slate-400"> — </span>
-                  <span className={color}>{pct}% {direction}</span>
-                  <span className="text-slate-400"> the baseline projection. Future distributions are scaled accordingly.</span>
+                  {distMonth <= 6
+                    ? <span className="text-slate-400"> (early ramp-up; projections will update as wells come fully online)</span>
+                    : <><span className="text-slate-400"> — </span><span className={color}>{pct}% {direction}</span><span className="text-slate-400"> the baseline. Future distributions scaled accordingly.</span></>
+                  }
                 </div>
               </div>
             ))}

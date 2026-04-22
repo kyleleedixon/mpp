@@ -67,10 +67,15 @@ export function getMonthlyRate(monthN: number, m: Milestones): number {
   return (m.year15 - m.year8) / 84;
 }
 
+// Distributions start Jan of the year AFTER the investment year
+export function distributionMonthN(calYear: number, calMonth: number, trancheYear: number): number {
+  return (calYear - (trancheYear + 1)) * 12 + calMonth;
+}
+
 export function getScaleFactor(t: Tranche, m: Milestones): number {
   if (!t.actualMonthly || !t.actualMonth) return 1.0;
   const [y, mo] = t.actualMonth.split('-').map(Number);
-  const monthN = (y - t.year) * 12 + mo;
+  const monthN = distributionMonthN(y, mo, t.year);
   const rate = getMonthlyRate(monthN, m);
   if (rate === 0 || t.amount === 0) return 1.0;
   return t.actualMonthly / (t.amount * rate);
@@ -137,7 +142,7 @@ export function runModel(
       let monthGross = 0;
 
       for (const t of tranches) {
-        const monthN = (year - t.year) * 12 + month;
+        const monthN = distributionMonthN(year, month, t.year);
         const rate = getMonthlyRate(monthN, params.milestones);
         if (rate === 0) continue;
         const dist = t.amount * rate * (scales[t.id] ?? 1.0);
