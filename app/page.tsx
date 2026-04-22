@@ -79,9 +79,15 @@ export default function Home() {
 
   const manualTranches = tranches.filter(t => !t.isReinvestment);
 
+  // Always start reinvesting the year after the last planned investment
+  const derivedParams = useMemo(() => ({
+    ...params,
+    reinvestStartYear: Math.max(...manualTranches.map(t => t.year)) + 1,
+  }), [params, manualTranches]);
+
   const { monthly, annual, tranches: allTranches } = useMemo(
-    () => runModel(manualTranches, params),
-    [manualTranches, params]
+    () => runModel(manualTranches, derivedParams),
+    [manualTranches, derivedParams]
   );
 
   const now = new Date();
@@ -163,7 +169,7 @@ export default function Home() {
         {/* Parameters */}
         <ParametersPanel
           tranches={manualTranches}
-          params={params}
+          params={derivedParams}
           onTranchesChange={next => setTranches(next)}
           onParamsChange={setParams}
         />

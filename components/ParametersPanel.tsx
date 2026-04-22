@@ -163,16 +163,10 @@ export default function ParametersPanel({ tranches, params, onTranchesChange, on
           <div>
             <h3 className="text-sm font-semibold text-white mb-1">Reinvestment Strategy</h3>
             <p className="text-xs text-slate-500 mb-4">
-              Starting in the year you choose, your accumulated monthly distributions (saved in HYSA) automatically fund each new year&apos;s investment instead of outside cash.
+              Reinvestment starts automatically the year after your last planned investment ({params.reinvestStartYear}).
+              Add or remove investment years above to change when reinvestment begins.
             </p>
-            <div className="grid grid-cols-2 gap-4 max-w-sm">
-              <Field label="Start reinvesting in year">
-                <NumberInput
-                  value={params.reinvestStartYear}
-                  onChange={v => onParamsChange({ ...params, reinvestStartYear: parseInt(v) || 2028 })}
-                  step="1" min="2025"
-                />
-              </Field>
+            <div className="grid grid-cols-1 gap-4 max-w-sm">
               <Field label="Show projections through">
                 <NumberInput
                   value={params.simulationEndYear}
