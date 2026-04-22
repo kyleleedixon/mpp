@@ -16,8 +16,8 @@ const DEFAULT_TRANCHES: Tranche[] = [
     label: '2024 Wells',
     color: '#3b82f6',
     isReinvestment: false,
-    actualMonthly: 14836.48 / 3, // YTD 2026 average (Jan–Mar)
-    actualMonth: '2026-03',
+    actualMonthly: 14836.48 / 4, // YTD 2026 average (Jan–Apr)
+    actualMonth: '2026-04',
     ltdGross: 33723.14,
   },
   {
@@ -27,8 +27,8 @@ const DEFAULT_TRANCHES: Tranche[] = [
     label: '2025 Wells',
     color: '#10b981',
     isReinvestment: false,
-    actualMonthly: 4208.69 / 3, // YTD 2026 average (Jan–Mar)
-    actualMonth: '2026-03',
+    actualMonthly: 4208.69 / 4, // YTD 2026 average (Jan–Apr)
+    actualMonth: '2026-04',
     ltdGross: 4208.69,
   },
   {

@@ -73,6 +73,7 @@ export default function CashflowChart({ monthly, tranches, showNet, taxRate }: P
             width={44}
           />
           <Tooltip
+            wrapperStyle={{ overflow: 'visible', zIndex: 50 }}
             content={(props) => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const { active, payload, coordinate, viewBox } = props as any;
@@ -85,12 +86,12 @@ export default function CashflowChart({ monthly, tranches, showNet, taxRate }: P
                 : '';
               const total = payload.reduce((s: number, p: {value: unknown}) => s + (Number(p.value) || 0), 0);
               const visibleRows = payload.filter((p: {value: unknown}) => Number(p.value) > 0.5);
-              // Flip tooltip to the left when cursor is past the midpoint so it never goes off-screen
-              const flipLeft = coordinate?.x > (viewBox?.width ?? 0) / 2;
+              // Flip left when past 40% of chart width — aggressive enough to avoid right-edge overflow on mobile
+              const flipLeft = coordinate?.x > (viewBox?.width ?? 0) * 0.4;
               return (
                 <div
-                  className="bg-slate-900 border border-slate-700 rounded-xl p-3 shadow-xl w-44"
-                  style={{ transform: flipLeft ? 'translateX(calc(-100% - 12px))' : 'translateX(12px)' }}
+                  className="bg-slate-900 border border-slate-700 rounded-xl p-3 shadow-xl w-40"
+                  style={{ transform: flipLeft ? 'translateX(calc(-100% - 8px))' : 'translateX(8px)' }}
                 >
                   <div className="flex items-center justify-between mb-2 gap-2">
                     <p className="text-white font-semibold text-xs">{dateLabel}</p>
