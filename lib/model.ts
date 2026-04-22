@@ -48,15 +48,15 @@ export interface MonthlyPoint {
 export interface AnnualRow {
   year: number;
   newInvestment: number;
-  cumulativeInvested: number;
+  cumulativeInvested: number;       // includes reinvested amounts
+  originalCashInvested: number;     // only out-of-pocket cash (excludes reinvestments)
   grossDistributions: number;
   taxWithheld: number;
   netDistributions: number;
   hysaEndBalance: number;
   cumulativeGross: number;
   cumulativeNet: number;
-  roiGross: number; // (cumulativeGross - cumulativeInvested) / cumulativeInvested
-  roiNet: number;
+  cashROI: number;  // (cumulativeNet - originalCashInvested) / originalCashInvested — the one that matters
   isReinvestmentYear: boolean;
 }
 
@@ -92,6 +92,7 @@ export function runModel(
   const hysaMonthlyRate = params.hysaAPY / 12;
   let hysaBalance = 0;
   let cumulativeInvested = 0;
+  let originalCashInvested = 0; // only money you personally put in
   let cumulativeGross = 0;
   let cumulativeNet = 0;
 
@@ -123,6 +124,7 @@ export function runModel(
     }
 
     cumulativeInvested += newInvestment;
+    if (!isReinvestmentYear) originalCashInvested += newInvestment;
 
     let yearGross = 0;
     let yearNet = 0;
@@ -171,14 +173,14 @@ export function runModel(
       year,
       newInvestment,
       cumulativeInvested,
+      originalCashInvested,
       grossDistributions: yearGross,
       taxWithheld: yearGross - yearNet,
       netDistributions: yearNet,
       hysaEndBalance: hysaBalance,
       cumulativeGross,
       cumulativeNet,
-      roiGross: cumulativeInvested > 0 ? (cumulativeGross - cumulativeInvested) / cumulativeInvested : 0,
-      roiNet: cumulativeInvested > 0 ? (cumulativeNet - cumulativeInvested) / cumulativeInvested : 0,
+      cashROI: originalCashInvested > 0 ? (cumulativeNet - originalCashInvested) / originalCashInvested : 0,
       isReinvestmentYear,
     });
   }

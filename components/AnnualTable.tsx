@@ -16,21 +16,19 @@ export default function AnnualTable({ rows }: Props) {
         <thead>
           <tr className="text-left text-slate-400 border-b border-slate-700">
             <th className="pb-2 pr-4 font-medium">Year</th>
-            <th className="pb-2 pr-4 font-medium text-right">Invested</th>
-            <th className="pb-2 pr-4 font-medium text-right">Gross Dist.</th>
-            <th className="pb-2 pr-4 font-medium text-right">Tax Est.</th>
-            <th className="pb-2 pr-4 font-medium text-right">Net Dist.</th>
-            <th className="pb-2 pr-4 font-medium text-right">HYSA Bal.</th>
-            <th className="pb-2 pr-4 font-medium text-right">Cum. Invested</th>
-            <th className="pb-2 font-medium text-right">Net ROI</th>
+            <th className="pb-2 pr-4 font-medium text-right">New Investment</th>
+            <th className="pb-2 pr-4 font-medium text-right">Gross Income</th>
+            <th className="pb-2 pr-4 font-medium text-right">Est. Tax</th>
+            <th className="pb-2 pr-4 font-medium text-right">Net Income</th>
+            <th className="pb-2 pr-4 font-medium text-right">Cum. Net Income</th>
+            <th className="pb-2 font-medium text-right">Return on Cash</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(row => {
+          {rows.map((row, i) => {
             const isPast = row.year < currentYear;
             const isCurrent = row.year === currentYear;
-            const breakEvenGross = row.roiGross >= 0;
-            const breakEvenNet = row.roiNet >= 0;
+            const isBreakEven = row.cashROI >= 0 && (i === 0 || rows[i - 1].cashROI < 0);
 
             return (
               <tr
@@ -39,7 +37,7 @@ export default function AnnualTable({ rows }: Props) {
                   'border-b border-slate-800 transition-colors',
                   isCurrent ? 'bg-blue-950/40' : '',
                   isPast ? 'opacity-70' : '',
-                  row.isReinvestmentYear ? 'text-emerald-300' : '',
+                  isBreakEven ? 'bg-green-950/30' : '',
                 ].join(' ')}
               >
                 <td className="py-2 pr-4">
@@ -49,6 +47,9 @@ export default function AnnualTable({ rows }: Props) {
                   )}
                   {row.isReinvestmentYear && (
                     <span className="ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">reinvest</span>
+                  )}
+                  {isBreakEven && (
+                    <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-medium">break-even ✓</span>
                   )}
                 </td>
                 <td className="py-2 pr-4 text-right">
@@ -69,29 +70,27 @@ export default function AnnualTable({ rows }: Props) {
                 <td className="py-2 pr-4 text-right text-green-400">
                   {fmt$(row.netDistributions)}
                 </td>
-                <td className="py-2 pr-4 text-right text-cyan-400">
-                  {fmt$(row.hysaEndBalance)}
-                </td>
-                <td className="py-2 pr-4 text-right text-slate-400">
-                  {fmt$(row.cumulativeInvested)}
+                <td className="py-2 pr-4 text-right text-slate-300">
+                  {fmt$(row.cumulativeNet)}
                 </td>
                 <td className="py-2 text-right">
                   <span className={[
                     'font-medium',
-                    row.roiNet >= 1 ? 'text-emerald-400' :
-                    row.roiNet >= 0 ? 'text-green-400' : 'text-red-400',
+                    row.cashROI >= 1 ? 'text-emerald-400' :
+                    row.cashROI >= 0 ? 'text-green-400' : 'text-red-400',
                   ].join(' ')}>
-                    {fmtPct(row.roiNet)}
+                    {fmtPct(row.cashROI)}
                   </span>
-                  {breakEvenNet && !rows.slice(0, rows.indexOf(row)).some(r => r.roiNet >= 0) && (
-                    <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-1 py-0.5 rounded">break-even</span>
-                  )}
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+      <p className="text-xs text-slate-600 mt-3">
+        &ldquo;Return on Cash&rdquo; = cumulative net income vs. your out-of-pocket cash only (excludes reinvested distributions).
+        Break-even is when you&apos;ve received back everything you personally invested.
+      </p>
     </div>
   );
 }

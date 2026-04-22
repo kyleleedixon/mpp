@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Tranche, ModelParams, runModel, fmt$, getScaleFactor } from '@/lib/model';
+import { Tranche, ModelParams, runModel, fmt$, fmtPct, getScaleFactor } from '@/lib/model';
 import ParametersPanel from '@/components/ParametersPanel';
 import AnnualTable from '@/components/AnnualTable';
 
@@ -90,7 +90,7 @@ export default function Home() {
   const totalInvested = manualTranches.reduce((s, t) => s + t.amount, 0);
   const lastAnnual = annual[annual.length - 1];
   const totalNetEver = lastAnnual?.cumulativeNet ?? 0;
-  const breakEvenRow = annual.find(r => r.roiNet >= 0);
+  const breakEvenRow = annual.find(r => r.cashROI >= 0);
 
   // Plain-English performance notes for tranches with actual data
   const performanceNotes = manualTranches
@@ -136,7 +136,9 @@ export default function Home() {
           <StatCard
             label="Break-even Year"
             value={breakEvenRow ? String(breakEvenRow.year) : '—'}
-            sub={breakEvenRow ? 'when cumulative income covers all invested cash' : ''}
+            sub={breakEvenRow
+              ? `${fmtPct(breakEvenRow.cashROI)} return on your $${(manualTranches.reduce((s,t)=>s+t.amount,0)/1000).toFixed(0)}k cash`
+              : 'when your net income covers your out-of-pocket cash'}
           />
         </div>
 
