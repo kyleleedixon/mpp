@@ -12,7 +12,7 @@ export default function AnnualTable({ rows }: Props) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[540px] text-sm">
+      <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-slate-400 border-b border-slate-700">
             <th className="pb-2 pr-3 font-medium">Year</th>
@@ -48,7 +48,7 @@ export default function AnnualTable({ rows }: Props) {
                     <span className="ml-2 text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">now</span>
                   )}
                   {row.isReinvestmentYear && (
-                    <span className="ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">reinvest</span>
+                    <span className="ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded hidden sm:inline">reinvest</span>
                   )}
                   {isBreakEven && (
                     <span className="ml-1 text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
