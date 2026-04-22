@@ -12,7 +12,7 @@ export default function AnnualTable({ rows }: Props) {
 
   return (
     <div>
-      <table className="w-full min-w-[780px] text-sm">
+      <table className="min-w-[780px] text-sm">
         <thead>
           <tr className="text-left text-slate-400 border-b border-slate-700">
             <th className="pb-2 pr-3 font-medium whitespace-nowrap">Year</th>

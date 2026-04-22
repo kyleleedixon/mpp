@@ -49,7 +49,7 @@ export default function CashflowChart({ monthly, tranches, showNet, taxRate }: P
 
   return (
     <div className="w-full h-72 sm:h-80">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="99%" height="100%">
         <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           <defs>
             {tranches.map(t => (

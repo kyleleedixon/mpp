@@ -219,14 +219,14 @@ export default function Home() {
         </div>
 
         {/* Annual table */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
-          <div className="p-5 pb-3">
+        <div className="bg-slate-900 border border-slate-700 rounded-xl">
+          <div className="px-5 pt-5 pb-3">
             <h2 className="text-base font-semibold text-white mb-1">Year-by-Year Summary</h2>
             <p className="text-xs text-slate-500">
               Green rows are reinvestment years — your accumulated savings fund that year&apos;s new wells.
             </p>
           </div>
-          <div className="overflow-x-auto px-5 pb-5">
+          <div className="w-full overflow-x-auto px-5 pb-5" style={{ WebkitOverflowScrolling: 'touch' }}>
             <AnnualTable rows={annual} />
           </div>
         </div>
