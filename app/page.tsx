@@ -109,10 +109,7 @@ export default function Home() {
 
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-white">Oil &amp; Gas Investment Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Profit-sharing participation plan — monthly income projections &amp; reinvestment modeling
-          </p>
+          <h1 className="text-2xl font-bold text-white">MPP Dashboard</h1>
         </div>
 
         {/* Key stats */}
