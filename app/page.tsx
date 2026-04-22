@@ -119,7 +119,7 @@ export default function Home() {
     });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
 
         {/* Header */}
@@ -219,12 +219,16 @@ export default function Home() {
         </div>
 
         {/* Annual table */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-5">
-          <h2 className="text-base font-semibold text-white mb-1">Year-by-Year Summary</h2>
-          <p className="text-xs text-slate-500 mb-4">
-            Green rows are reinvestment years — your accumulated savings fund that year&apos;s new wells.
-          </p>
-          <AnnualTable rows={annual} />
+        <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="p-5 pb-3">
+            <h2 className="text-base font-semibold text-white mb-1">Year-by-Year Summary</h2>
+            <p className="text-xs text-slate-500">
+              Green rows are reinvestment years — your accumulated savings fund that year&apos;s new wells.
+            </p>
+          </div>
+          <div className="overflow-x-auto px-5 pb-5">
+            <AnnualTable rows={annual} />
+          </div>
         </div>
 
       </div>
